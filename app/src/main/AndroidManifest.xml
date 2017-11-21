@@ -26,7 +26,7 @@
         </activity>
 
         <activity
-            android:name="com.led_on_off.led.ledControl"
+            android:name="com.led_on_off.led.octaveController"
             android:label="LED Control">
 
         </activity>

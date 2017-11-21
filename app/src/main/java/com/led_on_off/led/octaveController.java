@@ -1,15 +1,14 @@
 package com.led_on_off.led;
 
+import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,12 +22,14 @@ import java.io.InputStream;
 import java.util.UUID;
 
 
-public class ledControl extends ActionBarActivity {
+
+
+
+public class octaveController extends ActionBarActivity {
 
    // Button btnOn, btnOff, btnDis;
-    ImageButton Octave_1, Octave_2, Octave_3, Octave_4, Discnt;
+    ImageButton Octave_1, Octave_2, Octave_3, Octave_4, Discnt, Abt;
     TextView receivedText;
-    Button readData;
     String address = null;
     private ProgressDialog progress;
     BluetoothAdapter myBluetooth = null;
@@ -36,6 +37,14 @@ public class ledControl extends ActionBarActivity {
     private boolean isBtConnected = false;
     //SPP UUID. Look for it
     static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+
+
+    private ConnectedThread mConnectedThread;
+    private InputStream mmInStream;
+    Handler bluetoothIn;
+    final int handlerState = 0;
+    private StringBuilder recDataString = new StringBuilder();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -45,7 +54,7 @@ public class ledControl extends ActionBarActivity {
         Intent newint = getIntent();
         address = newint.getStringExtra(DeviceList.EXTRA_ADDRESS); //receive the address of the bluetooth device
 
-        //view of the ledControl
+        //view of the octaveController
         setContentView(R.layout.activity_led_control);
 
         //call the widgets
@@ -55,26 +64,12 @@ public class ledControl extends ActionBarActivity {
         Octave_4 = (ImageButton)findViewById(R.id.octave_4);
 
         Discnt = (ImageButton)findViewById(R.id.discnt);
+        Abt = (ImageButton)findViewById(R.id.abt);
 
-        readData = (Button)findViewById(R.id.readData);
 
         receivedText = (TextView)findViewById(R.id.receivedText);
 
         new ConnectBT().execute(); //Call the class to connect
-
-
-
-        // Read data from bluetooth
-        readData.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-
-//                readData();
-            }
-        });
-
 
 
 
@@ -137,6 +132,32 @@ public class ledControl extends ActionBarActivity {
         });
 
 
+
+        bluetoothIn = new Handler() {
+            public void handleMessage(android.os.Message msg) {
+                if (msg.what == handlerState) {										//if message is what we want
+                    String readMessage = (String) msg.obj;                                                                // msg.arg1 = bytes from connect thread
+                    recDataString.append(readMessage);      								//keep appending to string until ~
+                    int endOfLineIndex = recDataString.indexOf("~");                    // determine the end-of-line
+                    if (endOfLineIndex > 0) {                                           // make sure there data before ~
+                        String dataInPrint = recDataString.substring(0, endOfLineIndex);    // extract string
+//                        receivedText.setText("Data Received = " + dataInPrint);
+                        int dataLength = dataInPrint.length();							//get length of data received
+//                        txtStringLength.setText("String Length = " + String.valueOf(dataLength));
+
+                        if (recDataString.charAt(0) == '#')								//if it starts with # we know it is what we are looking for
+                        {
+                            String currentNote = recDataString.substring(1, endOfLineIndex);             //get sensor value from string between indices 1-5
+                            receivedText.setText(currentNote);
+                        }
+                        recDataString.delete(0, recDataString.length()); 					//clear all string data
+                        // strIncom =" ";
+                        dataInPrint = " ";
+                    }
+                }
+            }
+        };
+
     }
 
     private void resetSwitches() {
@@ -177,23 +198,6 @@ public class ledControl extends ActionBarActivity {
         }
     }
 
-//    private void readData() {
-//        if (btSocket!=null)
-//        {
-//            while (true) {
-//                try {
-//
-//                    InputStream mmInStream = btSocket.getInputStream();
-//                    byte[] readBuffer = new byte[8];
-//                    mmInStream.read(readBuffer);
-//
-//                } catch (IOException e) {
-//                    break;
-//                }
-//            }
-//        }
-//    }
-
 
     private void turnOffLed()
     {
@@ -232,6 +236,15 @@ public class ledControl extends ActionBarActivity {
     }
 
 
+    public void about(View v)
+    {
+        if(v.getId() == R.id.abt)
+        {
+            Intent i = new Intent(this, AboutActivity.class);
+            startActivity(i);
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -263,7 +276,7 @@ public class ledControl extends ActionBarActivity {
         @Override
         protected void onPreExecute()
         {
-            progress = ProgressDialog.show(ledControl.this, "Connecting...", "Please wait!!!");  //show a progress dialog
+            progress = ProgressDialog.show(octaveController.this, "Connecting...", "Please wait!!!");  //show a progress dialog
         }
 
         @Override
@@ -300,8 +313,50 @@ public class ledControl extends ActionBarActivity {
             {
                 msg("Connected.");
                 isBtConnected = true;
+                mConnectedThread = new ConnectedThread(btSocket);
+                mConnectedThread.start();
             }
             progress.dismiss();
+        }
+    }
+
+
+
+    //create new class for connect thread
+    private class ConnectedThread extends Thread {
+        private final InputStream mmInStream;
+
+        //creation of the connect thread
+        public ConnectedThread(BluetoothSocket socket) {
+            InputStream tmpIn = null;
+
+            try {
+                //Create I/O streams for connection
+                tmpIn = socket.getInputStream();
+            } catch (IOException e) { }
+
+            mmInStream = tmpIn;
+        }
+
+
+        public void run() {
+            byte[] buffer = new byte[256];
+            int bytes;
+
+            // Keep looping to listen for received messages
+            while (true) {
+                try {
+                    bytes = mmInStream.read(buffer);        	//read bytes from input buffer
+                    String readMessage = new String(buffer, 0, bytes);
+                    // Send the obtained bytes to the UI Activity via handler
+                    bluetoothIn.obtainMessage(handlerState, bytes, -1, readMessage).sendToTarget();
+
+                } catch (IOException e) {
+                    break;
+                }
+
+
+            }
         }
     }
 }

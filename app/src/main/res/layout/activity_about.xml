@@ -21,24 +21,26 @@
         android:textColor="#bf3951" />
 
     <ImageView
+        android:id="@+id/developer"
         android:layout_width="200dp"
         android:layout_height="200dp"
-        android:src="@drawable/developer"
-        android:id="@+id/developer"
+        android:src="@drawable/ashim"
         android:layout_below="@+id/abt_txt"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="31dp" />
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="The LED controller application is developed by Mayoogh Girish                 This application allows you to control a LED on your Arduino board "
         android:id="@+id/textView4"
-        android:textSize="22dp"
-        android:textColor="#bf3951"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_below="@+id/developer"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="30dp" />
+        android:gravity="center_vertical|center_horizontal"
+        android:text="Ashim Raj Konwar"
+        android:textAlignment="center"
+        android:textColor="#bf3951"
+        android:textSize="22dp" />
 
     <ImageButton
         android:layout_width="wrap_content"
@@ -79,6 +81,8 @@
         android:onClick="web"
         android:src="@drawable/website_75x75"
         android:background="@null"
-        android:layout_below="@+id/textView4"
-        android:layout_centerHorizontal="true" />
+        android:layout_above="@+id/twitter"
+        android:layout_alignLeft="@+id/twitter"
+        android:layout_alignStart="@+id/twitter"
+        android:layout_marginBottom="22dp" />
 </RelativeLayout>

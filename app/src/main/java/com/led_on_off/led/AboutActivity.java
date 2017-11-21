@@ -18,26 +18,26 @@ public class AboutActivity extends ActionBarActivity
 
     public void fb(View view)
     {
-        Intent fbIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/mayoogh"));
+        Intent fbIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/ashimrajkonwar"));
         startActivity(fbIntent);
     }
 
     public void tweet(View view)
     {
-        Intent tweetIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://twitter.com/mayoogh1997/"));
+        Intent tweetIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://twitter.com/zypher606/"));
         startActivity(tweetIntent);
     }
 
     public void insta(View view)
     {
-        Intent instaIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.instagram.com/mayoogh/"));
+        Intent instaIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.instagram.com/zypher606/"));
         startActivity(instaIntent);
     }
 
 
     public void web(View view)
     {
-        Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://igniteinnovateideas.wordpress.com/"));
+        Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.ashimrajkonwar.me/"));
         startActivity(webIntent);
     }
 }
